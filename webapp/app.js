@@ -214,20 +214,45 @@ function renderHeatmap() {
   const text = z.map((row) => row.map((v) => (v ? String(v) : "")));
   const zmax = Math.max(1, Math.max(...z.flat()));
 
-  const trace = {
+  const rowTotals = z.map((row) => row.reduce((a, b) => a + b, 0));
+  const colTotals = patterns.map((_, j) =>
+    z.reduce((acc, row) => acc + (row[j] || 0), 0)
+  );
+  const grandTotal = rowTotals.reduce((a, b) => a + b, 0);
+  const rowMax = Math.max(1, Math.max(...rowTotals));
+  const colMax = Math.max(1, Math.max(...colTotals));
+
+  const colors = [
+    [0, "#f7fbff"],
+    [0.2, "#deebf7"],
+    [0.4, "#c6dbef"],
+    [0.6, "#9ecae1"],
+    [0.8, "#6baed6"],
+    [1, "#08519c"],
+  ];
+
+  const totalsColTrace = {
+    type: "heatmap",
+    z: clauseTypes.map((_, i) => [rowTotals[i]]),
+    x: ["Σ"],
+    y: clauseTypes,
+    xaxis: "x2",
+    yaxis: "y",
+    colorscale: colors,
+    zmin: 0,
+    zmax: rowMax,
+    showscale: false,
+    text: clauseTypes.map((_, i) => [String(rowTotals[i])]),
+    texttemplate: "%{text}",
+    hovertemplate: "ClauseType=%{y}<br>Total=%{z}<extra></extra>",
+  };
+
+  const mainTrace = {
     type: "heatmap",
     z,
     x: patterns,
     y: clauseTypes,
-    // Low counts: very light; high counts: dark blue.
-    colorscale: [
-      [0, "#f7fbff"],
-      [0.2, "#deebf7"],
-      [0.4, "#c6dbef"],
-      [0.6, "#9ecae1"],
-      [0.8, "#6baed6"],
-      [1, "#08519c"],
-    ],
+    colorscale: colors,
     zmin: 0,
     zmax,
     showscale: true,
@@ -237,11 +262,43 @@ function renderHeatmap() {
       "ClauseType=%{y}<br>Pattern=%{x}<br>Count=%{z}<extra></extra>",
   };
 
+  const totalsRowTrace = {
+    type: "heatmap",
+    z: [colTotals],
+    x: patterns,
+    y: ["Σ"],
+    xaxis: "x",
+    yaxis: "y2",
+    colorscale: colors,
+    zmin: 0,
+    zmax: colMax,
+    showscale: false,
+    text: [colTotals.map(String)],
+    texttemplate: "%{text}",
+    hovertemplate: "Pattern=%{x}<br>Total=%{z}<extra></extra>",
+  };
+
+  const grandTotalTrace = {
+    type: "heatmap",
+    z: [[grandTotal]],
+    x: ["Σ"],
+    y: ["Σ"],
+    xaxis: "x2",
+    yaxis: "y2",
+    colorscale: colors,
+    zmin: 0,
+    zmax: Math.max(rowMax, colMax, 1),
+    showscale: false,
+    text: [[String(grandTotal)]],
+    texttemplate: "%{text}",
+    hovertemplate: "Grand Total=%{z}<extra></extra>",
+  };
+
   // Make the plot wide enough so x-axis pattern names are visible.
   // Show every label and rotate them vertically; users scroll horizontally.
   const dtick = 1;
-  const width = Math.min(2000 + patterns.length * 35, 80000);
-  const height = Math.min(500 + clauseTypes.length * 12, 1400);
+  const width = Math.min(2200 + patterns.length * 35, 80000);
+  const height = Math.min(560 + clauseTypes.length * 12, 1500);
 
   const layout = {
     title:
@@ -250,26 +307,46 @@ function renderHeatmap() {
         : selectedChapter === "all"
         ? `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)})`
         : `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)} ${selectedChapter}장)`,
-    margin: { l: 90, r: 20, t: 40, b: 220 },
+    margin: { l: 110, r: 20, t: 40, b: 220 },
     xaxis: {
       automargin: true,
       tickangle: -90,
       tickmode: "linear",
       dtick,
       tickfont: { size: 9 },
+      domain: [0.08, 1],
     },
-    yaxis: { automargin: true },
+    xaxis2: {
+      automargin: true,
+      tickmode: "array",
+      tickvals: ["Σ"],
+      ticktext: ["Σ"],
+      domain: [0, 0.08],
+    },
+    yaxis: { automargin: true, domain: [0.1, 1] },
+    yaxis2: {
+      automargin: true,
+      tickmode: "array",
+      tickvals: ["Σ"],
+      ticktext: ["Σ"],
+      domain: [0, 0.1],
+    },
     autosize: false,
     width,
     height,
     dragmode: false,
   };
 
-  Plotly.newPlot("heatmap", [trace], layout, {
+  Plotly.newPlot(
+    "heatmap",
+    [totalsColTrace, mainTrace, totalsRowTrace, grandTotalTrace],
+    layout,
+    {
     responsive: false,
     scrollZoom: false,
     displayModeBar: false,
-  });
+    }
+  );
 
   const heatmapDiv = document.getElementById("heatmap");
   heatmapDiv.on("plotly_click", handleClick);
@@ -281,6 +358,7 @@ function handleClick(ev) {
   const pt = ev.points[0];
   const clauseType = pt.y;
   const pattern = pt.x;
+  if (clauseType === "Σ" || pattern === "Σ") return;
   const isShift = ev.event && ev.event.shiftKey;
 
   if (!isShift) selectedCells = [];
