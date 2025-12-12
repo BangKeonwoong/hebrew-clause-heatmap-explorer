@@ -8,6 +8,7 @@ let clauses = [];
 
 let allPatterns = [];
 let patterns = [];
+let allClauseTypes = [];
 let clauseTypes = [];
 let matrix = [];
 
@@ -17,6 +18,11 @@ let displayedCount = 0;
 let bookIndex = {};
 let books = [];
 let selectedBook = "all";
+let selectedChapter = "all";
+let chaptersByBook = {};
+let useLocalPatternOrder = false;
+let useFrequencyClauseTypeOrder = false;
+let hideZeroClauseTypes = false;
 
 function displayBookName(book) {
   return book.replaceAll("_", " ");
@@ -40,6 +46,17 @@ async function loadData() {
 
   books = Object.keys(statsData);
   bookIndex = Object.fromEntries(books.map((b, i) => [b, i]));
+
+  // Precompute chapters per book from per-clause data.
+  const map = {};
+  for (const r of clauses) {
+    if (!map[r.book]) map[r.book] = new Set();
+    map[r.book].add(r.chapter);
+  }
+  chaptersByBook = {};
+  for (const [b, set] of Object.entries(map)) {
+    chaptersByBook[b] = Array.from(set).sort((a, b2) => a - b2);
+  }
 }
 
 function computeAllPatterns() {
@@ -56,25 +73,104 @@ function computeAllPatterns() {
     .map(([pat]) => pat);
 }
 
-function applyPatternLimit(limitValue) {
+function computeLocalPatternOrder() {
+  if (selectedBook === "all") {
+    // No book scope to order by; fall back to global order.
+    return allPatterns.slice();
+  }
+  const counts = {};
+  const chapterNum =
+    selectedChapter === "all" ? null : Number(selectedChapter);
+
+  for (const r of clauses) {
+    if (selectedBook !== "all" && r.book !== selectedBook) continue;
+    if (chapterNum != null && r.chapter !== chapterNum) continue;
+    counts[r.pattern] = (counts[r.pattern] || 0) + 1;
+  }
+
+  const globalRank = Object.fromEntries(allPatterns.map((p, i) => [p, i]));
+  return allPatterns
+    .slice()
+    .sort((a, b) => {
+      const ca = counts[a] || 0;
+      const cb = counts[b] || 0;
+      if (cb !== ca) return cb - ca;
+      return (globalRank[a] ?? 99999) - (globalRank[b] ?? 99999);
+    });
+}
+
+function applyPatternLimit(limitValue, orderSource) {
   if (limitValue === "all") {
-    patterns = allPatterns.slice();
+    patterns = orderSource.slice();
     return;
   }
   const limit = Number(limitValue);
   if (!Number.isFinite(limit) || limit <= 0) {
-    patterns = allPatterns.slice();
+    patterns = orderSource.slice();
     return;
   }
-  patterns = allPatterns.slice(0, limit);
+  patterns = orderSource.slice(0, limit);
 }
 
-function computeClauseTypes() {
+function updatePatternsFromState() {
+  const baseOrder = useLocalPatternOrder
+    ? computeLocalPatternOrder()
+    : allPatterns;
+  const limitSelect = document.getElementById("patternLimit");
+  const limitValue = limitSelect ? limitSelect.value : "all";
+  applyPatternLimit(limitValue, baseOrder);
+}
+
+function computeAllClauseTypes() {
   const set = new Set();
   for (const book of Object.values(statsData)) {
     for (const typ of Object.keys(book)) set.add(typ);
   }
-  clauseTypes = Array.from(set).sort((a, b) => a.localeCompare(b));
+  allClauseTypes = Array.from(set).sort((a, b) => a.localeCompare(b));
+  clauseTypes = allClauseTypes.slice();
+}
+
+function computeLocalClauseTypeCounts() {
+  const counts = {};
+  const chapterNum =
+    selectedChapter === "all" ? null : Number(selectedChapter);
+
+  for (const r of clauses) {
+    if (selectedBook !== "all" && r.book !== selectedBook) continue;
+    if (chapterNum != null && r.chapter !== chapterNum) continue;
+    counts[r.clause_type] = (counts[r.clause_type] || 0) + 1;
+  }
+
+  return counts;
+}
+
+function computeLocalClauseTypeOrder(counts) {
+  const globalRank = Object.fromEntries(
+    allClauseTypes.map((t, i) => [t, i])
+  );
+
+  return allClauseTypes
+    .slice()
+    .sort((a, b) => {
+      const ca = counts[a] || 0;
+      const cb = counts[b] || 0;
+      if (cb !== ca) return cb - ca;
+      return (globalRank[a] ?? 99999) - (globalRank[b] ?? 99999);
+    });
+}
+
+function updateClauseTypesFromState() {
+  if (!useFrequencyClauseTypeOrder) {
+    clauseTypes = allClauseTypes.slice();
+    return;
+  }
+
+  const counts = computeLocalClauseTypeCounts();
+  let ordered = computeLocalClauseTypeOrder(counts);
+  if (hideZeroClauseTypes) {
+    ordered = ordered.filter((t) => (counts[t] || 0) > 0);
+  }
+  clauseTypes = ordered;
 }
 
 function computeMatrix() {
@@ -83,20 +179,16 @@ function computeMatrix() {
 
   matrix = clauseTypes.map(() => patterns.map(() => 0));
 
-  const booksToUse =
-    selectedBook === "all" ? Object.values(statsData) : [statsData[selectedBook]];
+  const chapterNum =
+    selectedChapter === "all" ? null : Number(selectedChapter);
 
-  for (const book of booksToUse) {
-    if (!book) continue;
-    for (const [typ, patterns] of Object.entries(book)) {
-      const i = typeIndex[typ];
-      if (i == null) continue;
-      for (const [pat, count] of Object.entries(patterns)) {
-        const j = patIndex[pat];
-        if (j == null) continue;
-        matrix[i][j] += count;
-      }
-    }
+  for (const r of clauses) {
+    if (selectedBook !== "all" && r.book !== selectedBook) continue;
+    if (chapterNum != null && r.chapter !== chapterNum) continue;
+    const i = typeIndex[r.clause_type];
+    const j = patIndex[r.pattern];
+    if (i == null || j == null) continue;
+    matrix[i][j] += 1;
   }
 }
 
@@ -138,7 +230,9 @@ function renderHeatmap() {
     title:
       selectedBook === "all"
         ? "Clause Type vs Word Order Patterns (전체)"
-        : `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)})`,
+        : selectedChapter === "all"
+        ? `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)})`
+        : `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)} ${selectedChapter}장)`,
     margin: { l: 90, r: 20, t: 40, b: 220 },
     xaxis: {
       automargin: true,
@@ -211,7 +305,9 @@ function filterClauses() {
   const filtered = clauses.filter((r) => {
     if (!selectedSet.has(`${r.clause_type}||${r.pattern}`)) return false;
     if (selectedBook === "all") return true;
-    return r.book === selectedBook;
+    if (r.book !== selectedBook) return false;
+    if (selectedChapter === "all") return true;
+    return r.chapter === Number(selectedChapter);
   });
 
   filtered.sort((a, b) => {
@@ -284,12 +380,14 @@ async function init() {
 
   await loadData();
   computeAllPatterns();
-  applyPatternLimit("all");
-  computeClauseTypes();
+  updatePatternsFromState();
+  computeAllClauseTypes();
+  updateClauseTypesFromState();
   computeMatrix();
   renderHeatmap();
 
   const bookSelect = document.getElementById("bookSelect");
+  const chapterSelect = document.getElementById("chapterSelect");
   for (const b of books) {
     const opt = document.createElement("option");
     opt.value = b;
@@ -297,10 +395,48 @@ async function init() {
     bookSelect.appendChild(opt);
   }
 
+  function populateChapters(book) {
+    chapterSelect.innerHTML = "";
+    const allOpt = document.createElement("option");
+    allOpt.value = "all";
+    allOpt.textContent = "전체";
+    chapterSelect.appendChild(allOpt);
+
+    const chs = chaptersByBook[book] || [];
+    for (const ch of chs) {
+      const opt = document.createElement("option");
+      opt.value = String(ch);
+      opt.textContent = String(ch);
+      chapterSelect.appendChild(opt);
+    }
+  }
+
   bookSelect.onchange = () => {
     selectedBook = bookSelect.value;
+    selectedChapter = "all";
+    if (selectedBook === "all") {
+      chapterSelect.disabled = true;
+      chapterSelect.value = "all";
+    } else {
+      chapterSelect.disabled = false;
+      populateChapters(selectedBook);
+      chapterSelect.value = "all";
+    }
     selectedCells = [];
     updateSelectionUI();
+    updatePatternsFromState();
+    updateClauseTypesFromState();
+    computeMatrix();
+    renderHeatmap();
+    filterAndRenderResults(true);
+  };
+
+  chapterSelect.onchange = () => {
+    selectedChapter = chapterSelect.value;
+    selectedCells = [];
+    updateSelectionUI();
+    updatePatternsFromState();
+    updateClauseTypesFromState();
     computeMatrix();
     renderHeatmap();
     filterAndRenderResults(true);
@@ -308,9 +444,49 @@ async function init() {
 
   const limitSelect = document.getElementById("patternLimit");
   limitSelect.onchange = () => {
-    applyPatternLimit(limitSelect.value);
     selectedCells = [];
     updateSelectionUI();
+    updatePatternsFromState();
+    updateClauseTypesFromState();
+    computeMatrix();
+    renderHeatmap();
+    filterAndRenderResults(true);
+  };
+
+  const localOrderToggle = document.getElementById("localOrderToggle");
+  localOrderToggle.onchange = () => {
+    useLocalPatternOrder = localOrderToggle.checked;
+    selectedCells = [];
+    updateSelectionUI();
+    updatePatternsFromState();
+    updateClauseTypesFromState();
+    computeMatrix();
+    renderHeatmap();
+    filterAndRenderResults(true);
+  };
+
+  const clauseTypeToggle = document.getElementById("clauseTypeOrderToggle");
+  const hideZeroToggle = document.getElementById("hideZeroClauseTypesToggle");
+  clauseTypeToggle.onchange = () => {
+    useFrequencyClauseTypeOrder = clauseTypeToggle.checked;
+    hideZeroToggle.disabled = !useFrequencyClauseTypeOrder;
+    if (!useFrequencyClauseTypeOrder) {
+      hideZeroClauseTypes = false;
+      hideZeroToggle.checked = false;
+    }
+    selectedCells = [];
+    updateSelectionUI();
+    updateClauseTypesFromState();
+    computeMatrix();
+    renderHeatmap();
+    filterAndRenderResults(true);
+  };
+
+  hideZeroToggle.onchange = () => {
+    hideZeroClauseTypes = hideZeroToggle.checked;
+    selectedCells = [];
+    updateSelectionUI();
+    updateClauseTypesFromState();
     computeMatrix();
     renderHeatmap();
     filterAndRenderResults(true);

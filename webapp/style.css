@@ -98,6 +98,15 @@ body {
   color: #374151;
 }
 
+.toggle-label {
+  user-select: none;
+  cursor: pointer;
+}
+
+.toggle-label input {
+  transform: translateY(0.5px);
+}
+
 .controls select {
   padding: 4px 6px;
   border: 1px solid #d1d5db;

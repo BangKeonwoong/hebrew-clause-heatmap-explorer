@@ -23,6 +23,24 @@
               <option value="all" selected>전체</option>
             </select>
           </label>
+          <label class="limit-label">
+            장 선택
+            <select id="chapterSelect" disabled>
+              <option value="all" selected>전체</option>
+            </select>
+          </label>
+          <label class="limit-label toggle-label">
+            <input type="checkbox" id="localOrderToggle" />
+            장 기준 패턴 정렬
+          </label>
+          <label class="limit-label toggle-label">
+            <input type="checkbox" id="clauseTypeOrderToggle" />
+            ClauseType 빈도순
+          </label>
+          <label class="limit-label toggle-label">
+            <input type="checkbox" id="hideZeroClauseTypesToggle" disabled />
+            0빈도 ClauseType 숨기기
+          </label>
         </div>
       </div>
     </header>
