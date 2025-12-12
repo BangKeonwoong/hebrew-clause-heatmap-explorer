@@ -307,6 +307,8 @@ function renderHeatmap() {
   const sigmaHeightPx = 34;
   const sigmaFracX = Math.min(0.06, Math.max(0.0005, sigmaWidthPx / width));
   const sigmaFracY = Math.min(0.12, Math.max(0.0005, sigmaHeightPx / height));
+  // Reserve empty vertical space for rotated x-axis labels so they don't overlap the totals row.
+  const xLabelPadFrac = Math.min(0.28, Math.max(0.18, 180 / height));
 
   const layout = {
     title:
@@ -349,7 +351,7 @@ function renderHeatmap() {
       ticktext: clauseTypeTickText,
       tickfont: { size: 11 },
       side: "left",
-      domain: [sigmaFracY, 1],
+      domain: [xLabelPadFrac + sigmaFracY, 1],
       layer: "above traces",
       ticklabeloverflow: "allow",
       anchor: "free",
@@ -361,7 +363,7 @@ function renderHeatmap() {
       tickvals: ["Σ"],
       ticktext: ["Σ"],
       showticklabels: true,
-      domain: [0, sigmaFracY],
+      domain: [xLabelPadFrac, xLabelPadFrac + sigmaFracY],
       side: "left",
       layer: "above traces",
       anchor: "free",
