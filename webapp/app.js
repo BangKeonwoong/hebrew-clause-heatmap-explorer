@@ -315,7 +315,7 @@ function renderHeatmap() {
         : selectedChapter === "all"
         ? `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)})`
         : `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)} ${selectedChapter}장)`,
-    margin: { l: 220, r: 20, t: 40, b: 300 },
+    margin: { l: 280, r: 20, t: 40, b: 320 },
     xaxis: {
       automargin: true,
       tickangle: -90,
@@ -327,6 +327,8 @@ function renderHeatmap() {
       domain: [sigmaFracX, 1],
       layer: "above traces",
       ticklabeloverflow: "allow",
+      anchor: "free",
+      position: 0,
     },
     xaxis2: {
       automargin: true,
@@ -336,6 +338,8 @@ function renderHeatmap() {
       showticklabels: true,
       domain: [0, sigmaFracX],
       layer: "above traces",
+      anchor: "free",
+      position: 0,
     },
     yaxis: {
       automargin: true,
@@ -348,6 +352,8 @@ function renderHeatmap() {
       domain: [sigmaFracY, 1],
       layer: "above traces",
       ticklabeloverflow: "allow",
+      anchor: "free",
+      position: 0,
     },
     yaxis2: {
       automargin: true,
@@ -358,6 +364,8 @@ function renderHeatmap() {
       domain: [0, sigmaFracY],
       side: "left",
       layer: "above traces",
+      anchor: "free",
+      position: 0,
     },
     autosize: false,
     width,
