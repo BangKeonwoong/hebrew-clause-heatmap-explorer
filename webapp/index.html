@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Clause Type Heatmap Explorer</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-row">
+        <div class="header-text">
+          <h1>Clause Type × Word Order Heatmap</h1>
+          <p>
+            셀을 클릭하면 해당 (ClauseType, Pattern)의 절 목록을 보여줍니다.
+            Shift+클릭으로 여러 셀을 선택할 수 있습니다.
+          </p>
+        </div>
+        <div class="header-controls">
+          <label class="limit-label">
+            책 선택
+            <select id="bookSelect">
+              <option value="all" selected>전체</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <div id="heatmap" class="heatmap"></div>
+      <aside class="panel">
+        <div class="controls">
+          <div class="left-controls">
+            <button id="clearSelection">선택 초기화</button>
+            <label class="limit-label">
+              패턴 범위
+              <select id="patternLimit">
+                <option value="all" selected>전체</option>
+                <option value="50">상위 50</option>
+                <option value="100">상위 100</option>
+                <option value="200">상위 200</option>
+              </select>
+            </label>
+          </div>
+          <div id="selectionInfo" class="selection-info"></div>
+        </div>
+        <div id="results" class="results"></div>
+        <button id="loadMore" class="load-more" hidden>더 보기</button>
+      </aside>
+    </main>
+
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

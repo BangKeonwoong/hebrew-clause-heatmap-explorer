@@ -1,0 +1,3 @@
+Total Clauses: 88131
+No Constituents: 145
+Top Genesis Patterns: [('V', 864), ('V-C', 648), ('V-O', 376), ('V-S', 323), ('V-S-C', 302)]
