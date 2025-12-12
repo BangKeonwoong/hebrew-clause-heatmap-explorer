@@ -321,7 +321,7 @@ function renderHeatmap() {
       dtick,
       tickfont: { size: 9 },
       showticklabels: true,
-      domain: [sigmaFracX, 1],
+      domain: [0, 1 - sigmaFracX],
     },
     xaxis2: {
       automargin: true,
@@ -329,7 +329,7 @@ function renderHeatmap() {
       tickvals: ["Σ"],
       ticktext: ["Σ"],
       showticklabels: true,
-      domain: [0, sigmaFracX],
+      domain: [1 - sigmaFracX, 1],
     },
     yaxis: {
       automargin: true,
