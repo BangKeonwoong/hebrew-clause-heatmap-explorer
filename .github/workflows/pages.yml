@@ -25,11 +25,15 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p site
-          cp -R webapp/* site/
-          # Ensure stats are present under webapp/data for deployment
-          mkdir -p site/data
-          cp results/word_order_stats.json site/data/word_order_stats.json
-          cp results/clauses_detailed.json site/data/clauses_detailed.json
+          # Serve app under /webapp/ and redirect root to it
+          cp index.html site/index.html
+          cp -R webapp site/webapp
+          # Ensure data are present under /webapp/data for deployment
+          mkdir -p site/webapp/data
+          cp results/word_order_stats.json site/webapp/data/word_order_stats.json
+          cp results/clauses_detailed.json site/webapp/data/clauses_detailed.json
+          # Disable Jekyll processing just in case
+          touch site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
