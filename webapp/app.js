@@ -222,9 +222,7 @@ function renderHeatmap() {
   const rowMax = Math.max(1, Math.max(...rowTotals));
   const colMax = Math.max(1, Math.max(...colTotals));
 
-  const clauseTypeTickText = clauseTypes.map(
-    (t, i) => `${rowTotals[i]} ${t}`
-  );
+  const clauseTypeTickText = clauseTypes.map((t, i) => `${t} (${rowTotals[i]})`);
   const patternTickText = patterns.map((p, j) => `${p} (${colTotals[j]})`);
 
   const colors = [
@@ -247,8 +245,7 @@ function renderHeatmap() {
     zmin: 0,
     zmax: rowMax,
     showscale: false,
-    text: clauseTypes.map((_, i) => [String(rowTotals[i])]),
-    texttemplate: "%{text}",
+    // Totals numbers are shown in y-axis tick labels to avoid overlap.
     hovertemplate: "ClauseType=%{y}<br>Total=%{z}<extra></extra>",
   };
 
@@ -279,8 +276,6 @@ function renderHeatmap() {
     zmax: colMax,
     showscale: false,
     // Totals numbers are shown in x-axis tick labels to avoid overlap.
-    text: [colTotals.map(() => "")],
-    texttemplate: "%{text}",
     hovertemplate: "Pattern=%{x}<br>Total=%{z}<extra></extra>",
   };
 
@@ -308,10 +303,10 @@ function renderHeatmap() {
   const containerHeight = document.getElementById("heatmap")?.clientHeight || 820;
   const height = Math.max(700, Math.min(containerHeight, 1100));
   // Reserve fixed-ish pixel space for totals (Σ) column/row.
-  const sigmaWidthPx = 80;
-  const sigmaHeightPx = 40;
-  const sigmaFracX = Math.min(0.08, Math.max(0.002, sigmaWidthPx / width));
-  const sigmaFracY = Math.min(0.15, Math.max(0.002, sigmaHeightPx / height));
+  const sigmaWidthPx = 64;
+  const sigmaHeightPx = 34;
+  const sigmaFracX = Math.min(0.06, Math.max(0.0005, sigmaWidthPx / width));
+  const sigmaFracY = Math.min(0.12, Math.max(0.0005, sigmaHeightPx / height));
 
   const layout = {
     title:
