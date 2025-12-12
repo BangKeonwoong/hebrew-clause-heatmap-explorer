@@ -297,8 +297,14 @@ function renderHeatmap() {
   // Make the plot wide enough so x-axis pattern names are visible.
   // Show every label and rotate them vertically; users scroll horizontally.
   const dtick = 1;
-  const width = Math.min(2200 + patterns.length * 35, 80000);
+  // Keep width large enough for all labels, but not absurdly huge.
+  const width = Math.min(1600 + patterns.length * 12, 28000);
   const height = Math.min(560 + clauseTypes.length * 12, 1500);
+  // Reserve fixed-ish pixel space for totals (Σ) column/row.
+  const sigmaWidthPx = 90;
+  const sigmaHeightPx = 70;
+  const sigmaFracX = Math.max(0.02, Math.min(0.12, sigmaWidthPx / width));
+  const sigmaFracY = Math.max(0.04, Math.min(0.18, sigmaHeightPx / height));
 
   const layout = {
     title:
@@ -307,29 +313,37 @@ function renderHeatmap() {
         : selectedChapter === "all"
         ? `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)})`
         : `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)} ${selectedChapter}장)`,
-    margin: { l: 110, r: 20, t: 40, b: 220 },
+    margin: { l: 160, r: 20, t: 40, b: 240 },
     xaxis: {
       automargin: true,
       tickangle: -90,
       tickmode: "linear",
       dtick,
       tickfont: { size: 9 },
-      domain: [0.08, 1],
+      showticklabels: true,
+      domain: [sigmaFracX, 1],
     },
     xaxis2: {
       automargin: true,
       tickmode: "array",
       tickvals: ["Σ"],
       ticktext: ["Σ"],
-      domain: [0, 0.08],
+      showticklabels: true,
+      domain: [0, sigmaFracX],
     },
-    yaxis: { automargin: true, domain: [0.1, 1] },
+    yaxis: {
+      automargin: true,
+      showticklabels: true,
+      tickfont: { size: 11 },
+      domain: [sigmaFracY, 1],
+    },
     yaxis2: {
       automargin: true,
       tickmode: "array",
       tickvals: ["Σ"],
       ticktext: ["Σ"],
-      domain: [0, 0.1],
+      showticklabels: true,
+      domain: [0, sigmaFracY],
     },
     autosize: false,
     width,
