@@ -1,5 +1,11 @@
-const STATS_URL = "/results/word_order_stats.json";
-const CLAUSES_URL = "/results/clauses_detailed.json";
+const STATS_URL_CANDIDATES = [
+  "./data/word_order_stats.json",
+  "../results/word_order_stats.json",
+];
+const CLAUSES_URL_CANDIDATES = [
+  "./data/clauses_detailed.json",
+  "../results/clauses_detailed.json",
+];
 
 const PAGE_SIZE = 200;
 
@@ -33,13 +39,24 @@ function setSelectionInfo(text) {
 }
 
 async function loadData() {
-  const [statsResp, clausesResp] = await Promise.all([
-    fetch(STATS_URL),
-    fetch(CLAUSES_URL),
-  ]);
+  async function fetchFirstOk(urls, label) {
+    let lastErr = null;
+    for (const url of urls) {
+      try {
+        const resp = await fetch(url);
+        if (resp.ok) return resp;
+        lastErr = new Error(`${label} ${url} 응답 실패: ${resp.status}`);
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    throw lastErr || new Error(`${label} 로드 실패`);
+  }
 
-  if (!statsResp.ok) throw new Error("word_order_stats.json 로드 실패");
-  if (!clausesResp.ok) throw new Error("clauses_detailed.json 로드 실패");
+  const [statsResp, clausesResp] = await Promise.all([
+    fetchFirstOk(STATS_URL_CANDIDATES, "word_order_stats.json"),
+    fetchFirstOk(CLAUSES_URL_CANDIDATES, "clauses_detailed.json"),
+  ]);
 
   statsData = await statsResp.json();
   clauses = await clausesResp.json();

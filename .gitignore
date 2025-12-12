@@ -3,5 +3,4 @@ __pycache__/
 .DS_Store
 
 # Generated data (large / derived)
-results/clauses_detailed.json
-
+# NOTE: clauses_detailed.json is now included for public non-commercial deployment.
