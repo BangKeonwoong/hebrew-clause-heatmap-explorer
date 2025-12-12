@@ -303,8 +303,8 @@ function renderHeatmap() {
   // Reserve fixed-ish pixel space for totals (Σ) column/row.
   const sigmaWidthPx = 90;
   const sigmaHeightPx = 70;
-  const sigmaFracX = Math.max(0.02, Math.min(0.12, sigmaWidthPx / width));
-  const sigmaFracY = Math.max(0.04, Math.min(0.18, sigmaHeightPx / height));
+  const sigmaFracX = Math.max(0.001, Math.min(0.12, sigmaWidthPx / width));
+  const sigmaFracY = Math.max(0.001, Math.min(0.18, sigmaHeightPx / height));
 
   const layout = {
     title:
