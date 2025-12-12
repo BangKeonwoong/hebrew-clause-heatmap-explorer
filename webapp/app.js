@@ -308,7 +308,9 @@ function renderHeatmap() {
   const sigmaFracX = Math.min(0.06, Math.max(0.0005, sigmaWidthPx / width));
   const sigmaFracY = Math.min(0.12, Math.max(0.0005, sigmaHeightPx / height));
   // Reserve empty vertical space for rotated x-axis labels so they don't overlap the totals row.
-  const xLabelPadFrac = Math.min(0.28, Math.max(0.18, 180 / height));
+  const maxXLabelLen = Math.max(1, ...patternTickText.map((s) => s.length));
+  const xLabelPadPx = Math.min(220, Math.max(120, Math.round(maxXLabelLen * 6)));
+  const xLabelPadFrac = Math.min(0.26, Math.max(0.12, xLabelPadPx / height));
 
   const layout = {
     title:
@@ -317,7 +319,7 @@ function renderHeatmap() {
         : selectedChapter === "all"
         ? `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)})`
         : `Clause Type vs Word Order Patterns (${displayBookName(selectedBook)} ${selectedChapter}장)`,
-    margin: { l: 280, r: 20, t: 40, b: 320 },
+    margin: { l: 280, r: 20, t: 40, b: 240 },
     xaxis: {
       automargin: true,
       tickangle: -90,
@@ -330,7 +332,7 @@ function renderHeatmap() {
       layer: "above traces",
       ticklabeloverflow: "allow",
       anchor: "free",
-      position: 0,
+      position: xLabelPadFrac,
     },
     xaxis2: {
       automargin: true,
@@ -341,7 +343,7 @@ function renderHeatmap() {
       domain: [0, sigmaFracX],
       layer: "above traces",
       anchor: "free",
-      position: 0,
+      position: xLabelPadFrac,
     },
     yaxis: {
       automargin: true,
