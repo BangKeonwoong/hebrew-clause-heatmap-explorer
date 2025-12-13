@@ -146,6 +146,19 @@ body {
   margin-bottom: 2px;
 }
 
+.result-text {
+  white-space: pre-wrap;
+}
+
+.result-text-heb {
+  direction: rtl;
+  font-family: "SBL Hebrew", "Ezra SIL", "Times New Roman", serif;
+}
+
+.result-text-kr {
+  color: #111827;
+}
+
 .load-more {
   border: none;
   border-top: 1px solid #e5e7eb;

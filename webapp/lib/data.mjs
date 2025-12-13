@@ -1,5 +1,6 @@
 import {
   CLAUSES_URL_CANDIDATES,
+  KR_MAP_URL_CANDIDATES,
   STATS_URL_CANDIDATES,
   state,
 } from "./state.mjs";
@@ -16,6 +17,14 @@ async function fetchFirstOk(urls, label) {
     }
   }
   throw lastErr || new Error(`${label} 로드 실패`);
+}
+
+async function fetchFirstOkOptional(urls, label) {
+  try {
+    return await fetchFirstOk(urls, label);
+  } catch (_e) {
+    return null;
+  }
 }
 
 function indexClauses() {
@@ -65,6 +74,19 @@ export async function loadData() {
 
   state.books = Object.keys(state.statsData);
   state.bookIndex = Object.fromEntries(state.books.map((b, i) => [b, i]));
+
+  // Optional KR literal map (node -> string)
+  const krResp = await fetchFirstOkOptional(
+    KR_MAP_URL_CANDIDATES,
+    "clauses_kr_map.json"
+  );
+  if (krResp) {
+    const krMap = await krResp.json();
+    for (const r of state.clauses) {
+      const kr = krMap[String(r.node)];
+      if (kr) r.kr = kr;
+    }
+  }
 
   indexClauses();
 }

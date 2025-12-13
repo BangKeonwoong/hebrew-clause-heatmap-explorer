@@ -19,6 +19,11 @@ export const CLAUSES_URL_CANDIDATES = [
   "../results/clauses_detailed.json",
 ];
 
+export const KR_MAP_URL_CANDIDATES = [
+  "./data/clauses_kr_map.json",
+  "../results/clauses_kr_map.json",
+];
+
 export const state = {
   // Data
   statsData: null,
@@ -43,6 +48,7 @@ export const state = {
   useLocalPatternOrder: false,
   useFrequencyClauseTypeOrder: false,
   hideZeroClauseTypes: false,
+  verseDisplayMode: "heb", // 'heb' | 'kr' | 'both'
 
   // Derived (view)
   allPatterns: [],

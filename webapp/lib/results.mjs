@@ -72,11 +72,30 @@ export function renderResults(reset) {
     ref.className = "result-ref";
     ref.textContent = `${r.book} ${r.chapter}:${r.verse} · ${r.clause_type} · ${r.pattern}`;
 
-    const text = document.createElement("div");
-    text.textContent = r.hebrew;
+    if (state.verseDisplayMode === "heb") {
+      const text = document.createElement("div");
+      text.className = "result-text result-text-heb";
+      text.textContent = r.hebrew;
+      item.appendChild(ref);
+      item.appendChild(text);
+    } else if (state.verseDisplayMode === "kr") {
+      const text = document.createElement("div");
+      text.className = "result-text result-text-kr";
+      text.textContent = r.kr || "(한글 직역 없음)";
+      item.appendChild(ref);
+      item.appendChild(text);
+    } else {
+      const heb = document.createElement("div");
+      heb.className = "result-text result-text-heb";
+      heb.textContent = r.hebrew;
+      const kr = document.createElement("div");
+      kr.className = "result-text result-text-kr";
+      kr.textContent = r.kr || "(한글 직역 없음)";
+      item.appendChild(ref);
+      item.appendChild(heb);
+      item.appendChild(kr);
+    }
 
-    item.appendChild(ref);
-    item.appendChild(text);
     dom.results.appendChild(item);
   }
 

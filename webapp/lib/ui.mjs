@@ -90,6 +90,11 @@ export function bindEvents() {
     recomputeAndRender({ clearSelection: true });
   });
 
+  dom.verseDisplay.addEventListener("change", () => {
+    state.verseDisplayMode = dom.verseDisplay.value || "heb";
+    renderSelectionAndResults(true);
+  });
+
   dom.localOrderToggle.addEventListener("change", () => {
     state.useLocalPatternOrder = dom.localOrderToggle.checked;
     recomputeAndRender({ clearSelection: true });
@@ -125,6 +130,7 @@ export function syncInitialToggleState() {
   state.useLocalPatternOrder = dom.localOrderToggle.checked;
   state.useFrequencyClauseTypeOrder = dom.clauseTypeOrderToggle.checked;
   state.hideZeroClauseTypes = dom.hideZeroClauseTypesToggle.checked;
+  state.verseDisplayMode = dom.verseDisplay?.value || "heb";
   dom.hideZeroClauseTypesToggle.disabled = !state.useFrequencyClauseTypeOrder;
   if (!state.useFrequencyClauseTypeOrder) {
     state.hideZeroClauseTypes = false;
@@ -132,4 +138,3 @@ export function syncInitialToggleState() {
   }
   syncChapterSelectForBook();
 }
-

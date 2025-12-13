@@ -32,6 +32,7 @@ jobs:
           mkdir -p site/webapp/data
           cp results/word_order_stats.json site/webapp/data/word_order_stats.json
           cp results/clauses_detailed.json site/webapp/data/clauses_detailed.json
+          cp results/clauses_kr_map.json site/webapp/data/clauses_kr_map.json
           # Disable Jekyll processing just in case
           touch site/.nojekyll
       - uses: actions/configure-pages@v5

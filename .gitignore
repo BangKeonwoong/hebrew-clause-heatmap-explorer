@@ -4,3 +4,4 @@ __pycache__/
 
 # Generated data (large / derived)
 # NOTE: clauses_detailed.json is now included for public non-commercial deployment.
+data/
