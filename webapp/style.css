@@ -213,6 +213,27 @@ body {
   margin: 0 6px;
 }
 
+.donate-actions {
+  margin-top: 10px;
+}
+
+.donate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #111827;
+  color: white;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.donate-button:hover {
+  background: #0b1220;
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
