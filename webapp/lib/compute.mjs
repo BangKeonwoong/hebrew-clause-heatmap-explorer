@@ -1,5 +1,5 @@
 import { state } from "./state.mjs";
-import { getScopeCounts, getScopeClauses } from "./scope.mjs";
+import { getScopeIndex } from "./scope.mjs";
 
 export function computeAllPatterns() {
   const counts = {};
@@ -27,7 +27,7 @@ export function computeAllClauseTypes() {
 function computeLocalPatternOrder() {
   if (state.selectedBook === "all") return state.allPatterns.slice();
 
-  const { patternCounts } = getScopeCounts();
+  const { patternCounts } = getScopeIndex();
   const globalRank = Object.fromEntries(state.allPatterns.map((p, i) => [p, i]));
   return state.allPatterns.slice().sort((a, b) => {
     const ca = patternCounts[a] || 0;
@@ -67,7 +67,7 @@ export function updateClauseTypesFromState() {
     return;
   }
 
-  const { clauseTypeCounts } = getScopeCounts();
+  const { clauseTypeCounts } = getScopeIndex();
   let ordered = computeLocalClauseTypeOrder(clauseTypeCounts);
   if (state.hideZeroClauseTypes) {
     ordered = ordered.filter((t) => (clauseTypeCounts[t] || 0) > 0);
@@ -76,15 +76,16 @@ export function updateClauseTypesFromState() {
 }
 
 export function computeMatrix() {
-  const typeIndex = Object.fromEntries(state.clauseTypes.map((t, i) => [t, i]));
-  const patIndex = Object.fromEntries(state.patterns.map((p, i) => [p, i]));
   state.matrix = state.clauseTypes.map(() => state.patterns.map(() => 0));
 
-  for (const r of getScopeClauses()) {
-    const i = typeIndex[r.clause_type];
-    const j = patIndex[r.pattern];
-    if (i == null || j == null) continue;
-    state.matrix[i][j] += 1;
+  const { countsByTypePattern } = getScopeIndex();
+  for (let i = 0; i < state.clauseTypes.length; i += 1) {
+    const type = state.clauseTypes[i];
+    const rowCounts = countsByTypePattern.get(type);
+    if (!rowCounts) continue;
+    const row = state.matrix[i];
+    for (let j = 0; j < state.patterns.length; j += 1) {
+      row[j] = rowCounts.get(state.patterns[j]) || 0;
+    }
   }
 }
-

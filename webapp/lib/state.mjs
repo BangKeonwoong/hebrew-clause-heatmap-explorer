@@ -31,8 +31,9 @@ export const state = {
   clausesByBook: new Map(),
   clausesByBookChapter: new Map(), // key: `${book}::${chapter}`
 
-  // Cached counts
-  scopeCounts: new Map(), // scopeKey -> { patternCounts, clauseTypeCounts }
+  // Cached scope indexes
+  // scopeKey -> { patternCounts, clauseTypeCounts, countsByTypePattern, clausesByTypePattern }
+  scopeIndex: new Map(),
 
   // Filters
   selectedBook: "all",
@@ -55,4 +56,3 @@ export const state = {
   currentResults: [],
   displayedCount: 0,
 };
-

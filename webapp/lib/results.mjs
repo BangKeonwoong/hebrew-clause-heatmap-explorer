@@ -1,7 +1,7 @@
 import { dom } from "./dom.mjs";
 import { PAGE_SIZE, state } from "./state.mjs";
 import { setSelectionInfo } from "./utils.mjs";
-import { getScopeClauses } from "./scope.mjs";
+import { getScopeIndex } from "./scope.mjs";
 
 export function selectionStatusText() {
   if (state.selectedCells.length === 0) return "셀을 선택하세요.";
@@ -32,13 +32,15 @@ export function toggleCellSelection({ clauseType, pattern }, isShift) {
 function filterClauses() {
   if (state.selectedCells.length === 0) return [];
 
-  const selectedSet = new Set(
-    state.selectedCells.map((c) => `${c.clauseType}||${c.pattern}`)
-  );
-
-  const filtered = getScopeClauses().filter((r) =>
-    selectedSet.has(`${r.clause_type}||${r.pattern}`)
-  );
+  const { clausesByTypePattern } = getScopeIndex();
+  const filtered = [];
+  for (const c of state.selectedCells) {
+    const byType = clausesByTypePattern.get(c.clauseType);
+    if (!byType) continue;
+    const arr = byType.get(c.pattern);
+    if (!arr || arr.length === 0) continue;
+    filtered.push(...arr);
+  }
 
   filtered.sort((a, b) => {
     const bi = (state.bookIndex[a.book] ?? 999) - (state.bookIndex[b.book] ?? 999);
@@ -109,4 +111,3 @@ export function clearSelectionAndPanel() {
   dom.results.innerHTML = "";
   dom.loadMore.hidden = true;
 }
-

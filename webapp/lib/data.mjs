@@ -21,7 +21,7 @@ async function fetchFirstOk(urls, label) {
 function indexClauses() {
   state.clausesByBook.clear();
   state.clausesByBookChapter.clear();
-  state.scopeCounts.clear();
+  state.scopeIndex.clear();
 
   const chapters = {};
 
@@ -68,4 +68,3 @@ export async function loadData() {
 
   indexClauses();
 }
-
