@@ -30,7 +30,7 @@ def main() -> None:
     )
     p.add_argument(
         "--csv",
-        default="data/clause_analysis_ko_stage2_wip_v1235.csv",
+        default="data/clause_analysis_ko_stage2_wip_v1372.csv",
         help="한국어 직역 CSV 경로(세미콜론 구분)",
     )
     p.add_argument(
